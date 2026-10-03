@@ -1,0 +1,11 @@
+{
+  "name": "queryguard-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "QueryGuard AI — Self-hosted PostgreSQL performance-tuning copilot",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview"
+  }
+}
