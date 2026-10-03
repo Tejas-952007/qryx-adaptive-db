@@ -39,51 +39,45 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-      {/* Top Banner / Hero Triage Alert */}
+      {/* Top Alert Notification */}
       <div style={{
-        background: 'var(--bg-surface-raised)',
-        border: '1px solid var(--border-strong)',
-        borderRadius: 'var(--radius-md)',
-        padding: '16px 20px',
+        background: 'var(--brand-primary-muted)',
+        border: '1px solid var(--brand-primary-border)',
+        borderRadius: 'var(--radius-sm)',
+        padding: '8px 16px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         boxShadow: 'var(--shadow-sm)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 'var(--radius-sm)',
-            backgroundColor: 'var(--brand-primary-muted)',
-            border: '1px solid var(--brand-primary-border)',
-            display: 'flex',
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ 
+            color: 'var(--danger-text)', 
+            display: 'flex', 
             alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--brand-primary-text)'
+            background: '#FFFFFF',
+            padding: 6,
+            borderRadius: 'var(--radius-sm)',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
           }}>
-            <Zap size={20} />
+            <AlertTriangle size={16} />
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-                Triage Attention: Top Slow Query Needs Review
-              </h2>
-              <span className="badge badge-danger">Impact Score 92.4</span>
-            </div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-              {topQuery?.title} ({topQuery?.queryFingerprint}) is causing 2,450ms sequential scans on 12.4M rows.
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, flexWrap: 'wrap' }}>
+            <strong style={{ color: 'var(--text-primary)' }}>Triage Attention: Top Slow Query Needs Review</strong>
+            <span className="badge badge-danger" style={{ fontSize: 10, padding: '1px 6px', marginLeft: 4 }}>Impact Score {topQuery?.impactScore}</span>
+            <span style={{ color: 'var(--text-secondary)', marginLeft: 8 }}>
+              {topQuery?.title} ({topQuery?.queryFingerprint?.substring(0,8)}) is causing {topQuery?.averageDurationMs}ms sequential scans.
+            </span>
           </div>
         </div>
 
         <button 
           onClick={() => topQuery && onSelectQuery(topQuery.id)}
           className="btn btn-primary"
-          style={{ whiteSpace: 'nowrap' }}
+          style={{ whiteSpace: 'nowrap', padding: '5px 16px', fontSize: 12, borderRadius: 'var(--radius-sm)' }}
         >
           <span>Review Top Issue</span>
-          <ArrowUpRight size={15} />
+          <ArrowUpRight size={14} />
         </button>
       </div>
 

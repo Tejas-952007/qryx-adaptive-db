@@ -43,6 +43,8 @@ export const Navigation: React.FC<NavigationProps> = ({
   onToggleTheme,
   children
 }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Activity },
     { id: 'queries', label: 'Slow Queries', icon: Database, badge: '4' },
@@ -54,38 +56,72 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-      {/* Full-Height Sidebar Navigation */}
-      <aside className="sidebar" style={{ width: 260, borderRight: '1px solid var(--border-default)', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '24px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--border-default)' }}>
-          <div style={{
-            width: 36,
-            height: 36,
-            borderRadius: 'var(--radius-sm)',
-            backgroundColor: 'var(--brand-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#FFFFFF',
-            fontWeight: 800,
-            fontSize: 15,
-            letterSpacing: '-0.03em',
-            boxShadow: 'var(--shadow-sm)'
-          }}>
+      {/* Collapsible Dark Sidebar Navigation */}
+      <aside 
+        className="sidebar" 
+        style={{ 
+          width: isSidebarOpen ? 260 : 72, 
+          minWidth: isSidebarOpen ? 260 : 72,
+          backgroundColor: '#1E293B', 
+          color: '#F8FAFC',
+          display: 'flex', 
+          flexDirection: 'column',
+          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          overflow: 'hidden',
+          zIndex: 50
+        }}
+      >
+        <div style={{ 
+          padding: isSidebarOpen ? '20px' : '20px 0', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: isSidebarOpen ? 'flex-start' : 'center',
+          gap: 12, 
+          borderBottom: '1px solid #334155',
+          whiteSpace: 'nowrap'
+        }}>
+          <button 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            title="Toggle Sidebar"
+            style={{
+              width: 36,
+              height: 36,
+              minWidth: 36,
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#FFFFFF',
+              fontWeight: 800,
+              fontSize: 15,
+              letterSpacing: '-0.03em',
+              padding: 0
+            }}
+          >
             QG
-          </div>
-          <div>
-            <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em', color: 'var(--text-primary)', display: 'block' }}>
+          </button>
+          
+          <div style={{ 
+            opacity: isSidebarOpen ? 1 : 0, 
+            transition: 'opacity 0.2s ease', 
+            pointerEvents: isSidebarOpen ? 'auto' : 'none',
+            display: isSidebarOpen ? 'block' : 'none'
+          }}>
+            <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em', color: '#FFFFFF', display: 'block' }}>
               QueryGuard AI
             </span>
-            <span className="badge badge-brand" style={{ fontSize: 10, padding: '2px 7px', marginTop: 4 }}>Enterprise v1.0</span>
+            <span style={{ fontSize: 10, color: '#94A3B8', marginTop: 2, display: 'block' }}>Enterprise v1.0</span>
           </div>
         </div>
 
-        <div style={{ padding: '24px 20px 8px' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 12 }}>
-            Main Menu
-          </div>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ padding: isSidebarOpen ? '24px 16px' : '24px 8px' }}>
+          {isSidebarOpen && (
+            <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', marginBottom: 12, paddingLeft: 8, whiteSpace: 'nowrap' }}>
+              Main Menu
+            </div>
+          )}
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentTab === item.id;
@@ -93,38 +129,46 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <button
                   key={item.id}
                   onClick={() => onSelectTab(item.id)}
+                  title={!isSidebarOpen ? item.label : undefined}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 14px',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: isActive ? 'var(--brand-primary-muted)' : 'transparent',
-                    color: isActive ? 'var(--brand-primary-text)' : 'var(--text-secondary)',
+                    justifyContent: isSidebarOpen ? 'space-between' : 'center',
+                    padding: isSidebarOpen ? '10px 12px' : '12px 0',
+                    borderRadius: '6px',
+                    backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
+                    color: isActive ? '#FFFFFF' : '#94A3B8',
                     fontWeight: isActive ? 600 : 500,
                     fontSize: 14,
                     textAlign: 'left',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.15s ease',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                      e.currentTarget.style.color = '#FFFFFF';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#94A3B8';
+                    }
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Icon 
-                      size={18} 
-                      style={{ 
-                        color: isActive ? 'var(--brand-primary-text)' : 'var(--text-muted)',
-                        transition: 'color 0.2s ease'
-                      }} 
-                    />
-                    <span>{item.label}</span>
+                    <Icon size={18} />
+                    {isSidebarOpen && <span>{item.label}</span>}
                   </div>
-                  {item.badge && (
+                  {item.badge && isSidebarOpen && (
                     <span style={{
                       fontSize: 11,
-                      padding: '2px 8px',
-                      borderRadius: 'var(--radius-full)',
-                      backgroundColor: isActive ? 'var(--brand-primary)' : 'var(--bg-surface-raised)',
-                      color: isActive ? '#FFFFFF' : 'var(--text-muted)',
-                      fontWeight: 700
+                      padding: '2px 6px',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      color: '#FFFFFF',
+                      fontWeight: 600
                     }}>
                       {item.badge}
                     </span>
@@ -134,139 +178,101 @@ export const Navigation: React.FC<NavigationProps> = ({
             })}
           </nav>
         </div>
-
-        {/* Bottom trust reminder box */}
-        <div style={{ marginTop: 'auto', padding: '24px 20px' }}>
-          <div style={{
-            background: 'var(--bg-surface-raised)',
-            borderRadius: 'var(--radius-md)',
-            padding: '16px',
-            border: '1px solid var(--border-default)',
-            fontSize: 12,
-            lineHeight: 1.5
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--brand-primary-text)', fontWeight: 700, marginBottom: 8 }}>
-              <ShieldCheck size={16} />
-              <span>Production Safety</span>
-            </div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
-              Human DBA approval required. Zero automated deployment.
-            </p>
-          </div>
-        </div>
       </aside>
 
       {/* Main Content Area (Right Side) */}
-      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-        {/* Top Bar */}
+      <div 
+        onClick={() => {
+          if (isSidebarOpen) setIsSidebarOpen(false);
+        }}
+        style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', backgroundColor: 'var(--bg-canvas)' }}
+      >
+        {/* Structured Context Top Bar */}
         <header style={{ 
-          height: 72, 
-          minHeight: 72, 
-          background: 'var(--bg-canvas)', 
+          background: 'var(--bg-surface)', 
           borderBottom: '1px solid var(--border-default)', 
           display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          padding: '0 32px' 
+          flexDirection: 'column',
+          zIndex: 40
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* Connection status badge */}
-            <div 
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 8, 
-                background: 'var(--bg-surface)', 
-                padding: '6px 12px', 
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid var(--border-default)',
-                fontSize: 13,
-                boxShadow: 'var(--shadow-sm)'
-              }}
-            >
-              <span style={{ 
-                width: 8, 
-                height: 8, 
-                borderRadius: '50%', 
-                backgroundColor: dataSource.connectionStatus === 'CONNECTED' ? 'var(--success-text)' : 'var(--danger-text)',
-                display: 'inline-block'
-              }} />
-              <span style={{ color: 'var(--text-muted)' }}>Source:</span>
-              <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-                {dataSource.name}
-              </strong>
-            </div>
-
-            {/* Privacy status chip */}
-            <button 
-              onClick={onOpenPrivacyModal}
-              className="badge badge-brand" 
-              style={{ 
-                cursor: 'pointer', 
-                padding: '6px 14px', 
-                fontSize: 12,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                borderRadius: 'var(--radius-full)'
-              }}
-            >
-              <ShieldCheck size={14} />
-              <span>Zero Raw Rows • Local Sync</span>
-            </button>
-          </div>
-
-          {/* Right side controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <button
-              onClick={onToggleTheme}
-              className="btn btn-secondary"
-              style={{ padding: '8px 12px', borderRadius: 'var(--radius-full)' }}
-            >
-              {theme === 'dark' ? <Sun size={16} style={{ color: 'var(--warning-text)' }} /> : <Moon size={16} style={{ color: 'var(--info-text)' }} />}
-            </button>
-
-            <button 
-              onClick={onResetDemo}
-              className="btn btn-secondary" 
-              style={{ padding: '8px 12px', borderRadius: 'var(--radius-full)' }}
-            >
-              <RefreshCw size={16} />
-            </button>
-
-            {/* User / Role Switcher */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-surface)', padding: '6px 16px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-default)', boxShadow: 'var(--shadow-sm)' }}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: 'var(--brand-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-primary-text)' }}>
-                <UserCheck size={14} />
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            padding: '12px 24px',
+            borderBottom: '1px solid var(--border-default)',
+            backgroundColor: 'var(--bg-subtle)'
+          }}>
+            {/* Context Selectors */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Server</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--success-text)' }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{dataSource.name}</span>
+                  <span className="badge badge-neutral" style={{ fontSize: 10, padding: '1px 6px' }}>Primary</span>
+                </div>
               </div>
-              <select
-                value={currentUser.id}
-                onChange={(e) => {
-                  const found = users.find(u => u.id === e.target.value);
-                  if (found) onChangeUser(found);
-                }}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                  outline: 'none'
-                }}
-              >
-                {users.map(u => (
-                  <option key={u.id} value={u.id} style={{ background: 'var(--bg-surface)' }}>
-                    {u.name} ({u.role})
-                  </option>
-                ))}
-              </select>
+
+              <div style={{ width: 1, height: 24, backgroundColor: 'var(--border-strong)' }} />
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Database</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <Database size={14} style={{ color: 'var(--text-secondary)' }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>postgres_main</span>
+                </div>
+              </div>
+
+              <div style={{ width: 1, height: 24, backgroundColor: 'var(--border-strong)' }} />
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Timeframe</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <Activity size={14} style={{ color: 'var(--text-secondary)' }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Last 24 hours</span>
+                </div>
+              </div>
             </div>
+
+            {/* Global Controls */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <button onClick={onOpenPrivacyModal} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
+                <Lock size={14} /> Privacy Config
+              </button>
+              <div style={{ width: 1, height: 16, backgroundColor: 'var(--border-strong)' }} />
+              <button onClick={onResetDemo} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
+                <RefreshCw size={14} /> Sync
+              </button>
+              <div style={{ width: 1, height: 16, backgroundColor: 'var(--border-strong)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: 'var(--brand-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand-primary-text)' }}>
+                  <UserCheck size={12} />
+                </div>
+                <select
+                  value={currentUser.id}
+                  onChange={(e) => {
+                    const found = users.find(u => u.id === e.target.value);
+                    if (found) onChangeUser(found);
+                  }}
+                  style={{ background: 'transparent', border: 'none', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer', outline: 'none' }}
+                >
+                  {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          {/* Page Title & Tabs */}
+          <div style={{ padding: '16px 24px 0 24px' }}>
+            <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)', margin: 0, paddingBottom: 16 }}>
+              {navItems.find(i => i.id === currentTab)?.label || 'Dashboard'}
+            </h1>
           </div>
         </header>
 
         {/* Dynamic Content Canvas */}
-        <div style={{ flex: 1, overflow: 'auto', padding: '32px', backgroundColor: 'var(--bg-canvas)' }}>
+        <div style={{ flex: 1, overflow: 'auto', padding: '24px', backgroundColor: 'var(--bg-canvas)' }}>
           {children}
         </div>
       </div>

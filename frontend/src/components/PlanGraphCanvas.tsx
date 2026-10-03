@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ZoomIn, 
   ZoomOut, 
   Maximize2, 
+  Minimize2,
   AlertCircle, 
   ArrowDown, 
   Filter,
@@ -28,6 +29,7 @@ export const PlanGraphCanvas: React.FC<PlanGraphCanvasProps> = ({
   );
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [viewMode, setViewMode] = useState<'graph' | 'tree'>('graph');
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   const selectedNode = planGraph.nodes.find(n => n.id === selectedNodeId);
 
@@ -55,8 +57,29 @@ export const PlanGraphCanvas: React.FC<PlanGraphCanvasProps> = ({
     }
   };
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isExpanded) setIsExpanded(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isExpanded]);
+
   return (
-    <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: 440 }}>
+    <div className="card" style={{ 
+      padding: 0, 
+      overflow: 'hidden', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: isExpanded ? '100vh' : 440,
+      position: isExpanded ? 'fixed' : 'relative',
+      top: isExpanded ? 0 : 'auto',
+      left: isExpanded ? 0 : 'auto',
+      width: isExpanded ? '100vw' : '100%',
+      zIndex: isExpanded ? 9999 : 'auto',
+      borderRadius: isExpanded ? 0 : 'var(--radius-md)'
+    }}>
       {/* Header bar with controls */}
       <div style={{
         padding: '10px 16px',
@@ -136,16 +159,12 @@ export const PlanGraphCanvas: React.FC<PlanGraphCanvasProps> = ({
             <ZoomOut size={14} />
           </button>
           <button 
-            onClick={() => {
-              setZoomLevel(1);
-              const crit = planGraph.nodes.find(n => n.isCritical);
-              if (crit) setSelectedNodeId(crit.id);
-            }}
+            onClick={() => setIsExpanded(!isExpanded)}
             className="btn btn-ghost" 
             style={{ padding: 4 }} 
-            title="Focus Critical Path / Reset"
+            title={isExpanded ? "Compress View" : "Expand View"}
           >
-            <Maximize2 size={14} />
+            {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
           </button>
         </div>
       </div>
@@ -206,13 +225,14 @@ export const PlanGraphCanvas: React.FC<PlanGraphCanvasProps> = ({
             <div style={{
               transform: `scale(${zoomLevel})`,
               transformOrigin: 'top center',
-              transition: 'transform 0.15s ease',
+              transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 14,
+              gap: 0, // removed gap, we will use margins in edges
               width: '100%',
-              maxWidth: 600
+              maxWidth: 600,
+              padding: '20px 0'
             }}>
               {planGraph.nodes.map((node, index) => {
                 const isSelected = node.id === selectedNodeId;
@@ -220,88 +240,96 @@ export const PlanGraphCanvas: React.FC<PlanGraphCanvasProps> = ({
 
                 return (
                   <React.Fragment key={node.id}>
+                    {/* Graph Edge */}
                     {index > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--border-strong)', margin: '-6px 0' }}>
-                        <div style={{ width: 2, height: 12, backgroundColor: node.isCritical ? 'var(--danger-border)' : 'var(--border-default)' }} />
-                        <ArrowDown size={14} style={{ color: node.isCritical ? 'var(--danger-text)' : 'var(--border-strong)' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '4px 0' }}>
+                        <div style={{ 
+                          width: 2, 
+                          height: 32, 
+                          backgroundColor: node.isCritical ? 'var(--danger-border)' : 'var(--border-strong)', 
+                          opacity: node.isCritical ? 1 : 0.6 
+                        }} />
+                        <ArrowDown size={14} style={{ color: node.isCritical ? 'var(--danger-text)' : 'var(--border-strong)', marginTop: -6 }} />
                       </div>
                     )}
 
+                    {/* GNN Entity Node */}
                     <div
                       onClick={() => handleNodeClick(node)}
                       style={{
-                        width: '100%',
-                        background: isSelected ? 'var(--bg-surface-raised)' : 'var(--bg-surface)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 14,
+                        background: isSelected ? 'var(--brand-primary-muted)' : 'var(--bg-surface)',
                         border: `1px solid ${isSelected ? 'var(--brand-primary)' : node.isCritical ? 'var(--danger-border)' : 'var(--border-default)'}`,
-                        borderRadius: 'var(--radius-md)',
-                        padding: '12px 16px',
+                        borderRadius: 'var(--radius-full)',
+                        padding: '6px 24px 6px 6px',
                         cursor: 'pointer',
-                        boxShadow: node.isCritical ? '0 0 16px var(--danger-muted)' : 'var(--shadow-sm)',
-                        transition: 'all 0.15s ease',
-                        position: 'relative'
+                        boxShadow: node.isCritical ? '0 0 16px rgba(239, 68, 68, 0.15)' : '0 4px 6px rgba(0,0,0,0.02)',
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        position: 'relative',
+                        minWidth: 260,
+                        transform: isSelected ? 'scale(1.02)' : 'scale(1)'
                       }}
                       className={node.isCritical ? 'pulse-critical' : ''}
                     >
+                      {/* Circular Node Identifier */}
+                      <div style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        backgroundColor: isSelected ? 'var(--brand-primary)' : opColor,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#FFFFFF',
+                        flexShrink: 0,
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}>
+                        <Layers size={16} />
+                      </div>
+
+                      {/* Entity Metadata */}
+                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+                        <strong style={{ 
+                          fontSize: 13, 
+                          color: isSelected ? 'var(--brand-primary-text)' : 'var(--text-primary)', 
+                          fontFamily: 'var(--font-mono)',
+                          whiteSpace: 'nowrap',
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden'
+                        }}>
+                          {node.operatorType}
+                        </strong>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                          {node.relationToken || 'In-Memory State'}
+                        </div>
+                      </div>
+
+                      {/* Node Weight (Cost) */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginLeft: 8 }}>
+                        <span style={{ fontSize: 9, textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.05em' }}>Cost</span>
+                        <strong className="tabular-nums" style={{ fontSize: 12, color: node.isCritical ? 'var(--danger-text)' : 'var(--text-secondary)' }}>
+                          {node.estimatedCost >= 1000 ? (node.estimatedCost / 1000).toFixed(1) + 'k' : node.estimatedCost}
+                        </strong>
+                      </div>
+
+                      {/* Critical Bottleneck Indicator */}
                       {node.isCritical && (
                         <span 
-                          className="badge badge-danger" 
-                          style={{ position: 'absolute', top: -9, right: 12, fontSize: 10, padding: '1px 6px' }}
-                        >
-                          Bottleneck Node
-                        </span>
+                          style={{ 
+                            position: 'absolute', 
+                            top: -4, 
+                            right: -4, 
+                            width: 12, 
+                            height: 12, 
+                            borderRadius: '50%', 
+                            backgroundColor: 'var(--danger-text)', 
+                            border: '2px solid var(--bg-canvas)' 
+                          }}
+                          title="Critical Bottleneck"
+                        />
                       )}
-
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{
-                            display: 'inline-block',
-                            width: 10,
-                            height: 10,
-                            borderRadius: 2,
-                            backgroundColor: opColor
-                          }} />
-                          <strong style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-                            {node.operatorType}
-                          </strong>
-                          {node.relationToken && (
-                            <span className="badge badge-neutral font-mono" style={{ fontSize: 11 }}>
-                              {node.relationToken}
-                            </span>
-                          )}
-                          {node.joinType && (
-                            <span className="badge badge-info" style={{ fontSize: 10 }}>
-                              {node.joinType}
-                            </span>
-                          )}
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12 }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Cost:</span>
-                          <strong className="font-mono tabular-nums" style={{ color: node.isCritical ? 'var(--danger-text)' : 'var(--text-secondary)' }}>
-                            {node.estimatedCost.toLocaleString()}
-                          </strong>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)' }}>
-                        <div>
-                          <span>Est. Rows: </span>
-                          <span className="font-mono" style={{ color: 'var(--text-secondary)' }}>{node.estimatedRowsBucket}</span>
-                          {node.actualRowsBucket && (
-                            <>
-                              <span style={{ margin: '0 4px' }}>•</span>
-                              <span>Actual: </span>
-                              <span className="font-mono" style={{ color: 'var(--text-secondary)' }}>{node.actualRowsBucket}</span>
-                            </>
-                          )}
-                        </div>
-                        {node.filterColumns && node.filterColumns.length > 0 && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Filter size={11} />
-                            <span className="font-mono">{node.filterColumns.join(', ')}</span>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </React.Fragment>
                 );
