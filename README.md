@@ -1,0 +1,1 @@
+# qryx-adaptive-db
